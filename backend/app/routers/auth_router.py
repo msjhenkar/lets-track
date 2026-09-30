@@ -1,15 +1,25 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Header
 from sqlalchemy.orm import Session
 
 from app.Services.auth_service import (register_user, login_user)
 from app.database.connection import get_db
 from app.schemas.user import UserCreate, LoginRequest, LoginResponse, UserResponse
-
+from app.utils.dependencies import get_current_user
 
 router = APIRouter(
     prefix = "/auth",
     tags = ["authentication"]
 )
+
+@router.get("/test-auth")
+def test_auth(current_user = Depends(get_current_user)):
+    return {
+        "message": "Authentication successful",
+        "user_id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email
+    }
+
 
 @router.post("/register",response_model=LoginResponse, status_code=status.HTTP_201_CREATED)
 def register(user: UserCreate, db: Session = Depends(get_db)):
